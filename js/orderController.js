@@ -1,7 +1,8 @@
-import { modalDeliveryForm } from "./elements.js"
+import { clearCart } from "./cart.js";
+import { modalDeliveryContainer, modalDeliveryForm } from "./elements.js"
 
 export const orderController = (getCart) => {
-  modalDeliveryForm.addEventListener('change', () => {
+  const checkDelivery = () => {
     if (modalDeliveryForm.format.value === 'pickup') {
       modalDeliveryForm['address-info'].classList.add('modal-delivery__fieldset-input_hide');
     }
@@ -9,7 +10,9 @@ export const orderController = (getCart) => {
     if (modalDeliveryForm.format.value === 'delivery') {
       modalDeliveryForm['address-info'].classList.remove('modal-delivery__fieldset-input_hide');
     }
-  });
+  };
+
+  modalDeliveryForm.addEventListener('change', checkDelivery) 
 
   modalDeliveryForm.addEventListener('submit', e => {
     e.preventDefault();
@@ -21,6 +24,25 @@ export const orderController = (getCart) => {
       method: 'post',
       body: JSON.stringify(data),
     }).then(response => response.json())
-      .then(data => console.log(data));
+      .then(response => {
+        clearCart();
+        modalDeliveryContainer.innerHTML = `
+        <h2>Спасибо большое за заказ!</h2>
+        <h3>Ваш номер заказа ${response.id}</h3>
+        <p>С вами в ближайшее время свяжется наш менеджер</p>
+        <p>Ваш заказ:</p>
+        `;
+
+        const ul = document.createElement('ul');
+        data.order.forEach(item => {
+          ul.insertAdjacentHTML('beforeend', `
+          <li>${item.id}</li>
+          `)
+        });
+
+        modalDeliveryContainer.insertAdjacentElement('beforeend', ul);
+        //modalDeliveryForm.reset();
+        //checkDelivery();
+      });
   })
 }
